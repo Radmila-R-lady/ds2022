@@ -22,5 +22,5 @@ union_data=union_data.withColumn('Carmake_Origin', f.when( (f.col('make') == 'bm
     )
     
     
-    union_data.groupBy("model").min("CO2").show(4)
-#TeslaCars.groupBy("Model").avg("Price").show(4)
+union_data.groupBy("model").min("CO2").show(4)
+#union_data.groupBy("Model").avg("Price").show(4)
