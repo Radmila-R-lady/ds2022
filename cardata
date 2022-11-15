@@ -1,0 +1,26 @@
+# Start by reading a basic csv dataset
+# Let Spark know about the header and infer the Schema types!
+
+path =""   #change the path    
+# Some csv data
+cardata1 = spark.read.csv(path+'autoscout24de.csv',inferSchema=True,header=True)
+type(cardata1)
+
+path ="" 
+cardata2 = spark.read.csv(path+'usedcars.csv',inferSchema=True,header=True)
+
+union_data = cardata1.unionAll(cardata2)
+
+cardata1_reordered = cardata1.select(sorted(cardata1.columns,reverse=True))
+cardata2_reordered = cardata2.select(sorted(cardata2.columns,reverse=True))
+
+import pyspark.sql.functions as f
+
+union_data=union_data.withColumn('Carmake_Origin', f.when( (f.col('make') == 'bmw') | (f.col('make') == 'porsche') | (f.col('make') == 'audi') | (f.col('make') == 'ford') & (f.col('make') == 'mercedes-benz') | (f.col('make') == 'opel') | (f.col('make') == 'volkswagen'),'German'). 
+                                                   when( (f.col('make') == 'renault') ,'French').
+                                                   otherwise('other')
+    )
+    
+    
+    union_data.groupBy("model").min("CO2").show(4)
+#TeslaCars.groupBy("Model").avg("Price").show(4)
