@@ -1,3 +1,21 @@
+# CREATING PYSPARK INSTANCE!
+
+#PySpark applications start with initializing SparkSession which is the entry point of PySpark. 
+
+# Find pyspark to make it importable.  
+import findspark
+findspark.init()
+
+import pyspark 
+from pyspark.sql import SparkSession
+
+
+#just checking the number of cores we are working with 
+cores = spark._jsc.sc().getExecutorMemoryStatus().keySet().size()
+print("We are working with", cores, "core(s)")
+spark
+
+
 # Start by reading a basic csv dataset
 # Let Spark know about the header and infer the Schema types!
 
