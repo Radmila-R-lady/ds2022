@@ -16,29 +16,54 @@ print("We are working with", cores, "core(s)")
 spark
 
 
-# Start by reading a basic csv dataset
+# We can start by reading our first dataset
 # Let Spark know about the header and infer the Schema types!
-
 path =""   #change the path    
-# Some csv data
-cardata1 = spark.read.csv(path+'autoscout24de.csv',inferSchema=True,header=True)
+cardata1 = spark.read.csv(path+'autoscout24de.csv',inferSchema=True,header=True,sep = ",")
 type(cardata1)
+#Engine Size was interpreted as string. Lets change it to an integer. We can use StructType() to achieve this:
 
+dataschema = StructType([StructField("mileage", IntegerType(), True),
+             StructField("make", StringType(), True),
+             StructField("model_", StringType(), True),
+             StructField("fuel", StringType(), True),
+             StructField("gear", StringType(), True),
+             StructField("offerType", StringType(), True),
+             StructField("price_", IntegerType(), True),
+             StructField("hp", IntegerType(), True),
+             StructField("year", IntegerType(), True),
+             StructField("CO2", IntegerType(), True),
+             StructField("Description", StringType(), True),
+             StructField("Engine Size", IntegerType(), True)
+             ])
+#Loading again the data with new schema
+cardata1 = spark.read.csv(path+'autoscout24de.csv',header = True,schema = dataschema, sep =",")
+cardata1.printSchema()
+
+#lets import the second dataset 
 path ="" 
-cardata2 = spark.read.csv(path+'usedcars.csv',inferSchema=True,header=True)
+cardata2 = spark.read.csv(path+'usedcars.csv',schema = dataschema,header=True, sep =",")
+cardata2.columns   #just column names
+#and combine them
+union_data = cardata1.unionbyName(cardata2)
+#There are other functions to concationate: union, unionAll(this seems however to be depracated). Something useful here to read is if you dont opt for the aproach above:
+#https://stackoverflow.com/questions/56942058/spark-union-column-order
 
-union_data = cardata1.unionAll(cardata2)
-
-cardata1_reordered = cardata1.select(sorted(cardata1.columns,reverse=True))
-cardata2_reordered = cardata2.select(sorted(cardata2.columns,reverse=True))
-
-import pyspark.sql.functions as f
-
+#Lets now play with some transformations: 
+#Column make has same care makes with mixture of lower and upper case. Lets fix this. 
+union_data = union_data.withColumn("make",f.lower(f.col("make")))
+#out of curiosity, how many of them are there in each group 
+union_data.groupBy('make').count().show() 
+#lets create new column Carmake_origin using withColumn function; there will be 3 categories: german,french and other brands. Feel free to work further on this code 
 union_data=union_data.withColumn('Carmake_Origin', f.when( (f.col('make') == 'bmw') | (f.col('make') == 'porsche') | (f.col('make') == 'audi') | (f.col('make') == 'ford') & (f.col('make') == 'mercedes-benz') | (f.col('make') == 'opel') | (f.col('make') == 'volkswagen'),'German'). 
                                                    when( (f.col('make') == 'renault') ,'French').
                                                    otherwise('other')
     )
     
-    
-union_data.groupBy("model").min("CO2").show(4)
-#union_data.groupBy("Model").avg("Price").show(4)
+#let make addional changes. Check what happened.  
+union_data = union_data.withColumn('fuel', regexp_replace('fuel', 'Gasoline', 'Petrol'))
+We can now filter only for German cars:
+#union_data = union_data.filter(union_data.Carmake_Origin == "German").show(truncate=False)
+#now we can explore the dataset: which model has the lowest CO2 or what is the average price and so on.  
+#union_data.groupBy("model").min("CO2").show(4)
+#union_data.groupBy("model").avg("Price").show(4)
