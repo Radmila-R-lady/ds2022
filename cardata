@@ -9,6 +9,7 @@ findspark.init()
 import pyspark 
 from pyspark.sql import SparkSession
 
+spark = SparkSession.builder.getOrCreate("CarDataDS")
 
 #just checking the number of cores we are working with 
 cores = spark._jsc.sc().getExecutorMemoryStatus().keySet().size()
