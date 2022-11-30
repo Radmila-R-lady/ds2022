@@ -46,7 +46,7 @@ path =""
 cardata2 = spark.read.csv(path+'usedcars.csv',schema = dataschema,header=True, sep =",")
 cardata2.columns   #just column names
 #and combine them
-union_data = cardata1.unionbyName(cardata2)
+union_data = cardata1.unionByName(cardata2)
 #There are other functions to concationate: union, unionAll(this seems however to be depracated). Something useful here to read is if you dont opt for the aproach above:
 #https://stackoverflow.com/questions/56942058/spark-union-column-order
 
